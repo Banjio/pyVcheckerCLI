@@ -15,15 +15,14 @@ def _get_versions(pkg: str, uri: str = BASE_URL):
         #raise requests.exceptions.Timeout
         res.raise_for_status()
         releases = res.json()["releases"].keys()
-        return sorted(releases, key=StrictVersion)
+        return (sorted(releases, key=StrictVersion), 0)
     except requests.exceptions.HTTPError:
-        return {"msg": f"The package {pkg} was not found in Pypy. Please check your package name.", exit_code: 1}
+        return (f"The package {pkg} was not found in Pypy. Please check your package name.", 1)
 
     except requests.exceptions.Timeout:
-        typer.echo("The connection timed out, maybe try another uri.")
-        raise typer.Exit(code=1)
+        return ("The connection timed out, maybe try another uri.", 1, "TimeoutError")
 
-#@app.command()
+@app.command()
 def get_versions(pkg: str, uri: str = BASE_URL):
     data = f"{uri}/{pkg}/json"
     res = requests.get(data, timeout=10)
